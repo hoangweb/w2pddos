@@ -1,0 +1,41 @@
+name: do job
+
+on:
+  workflow_dispatch:
+    inputs:
+      token:
+        description: 'token'
+        required: true
+      task:
+        description: 'task name'     
+        required: true
+      arg_1:
+        description: 'arg 1'
+        required: false
+      arg_2:
+        description: 'arg 2'
+        required: false
+      arg_3:
+        description: 'arg 3'
+        required: false
+      
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+    - uses: actions/checkout@master
+    
+    - name: docker registry login
+      run: echo "${{  secrets.DOCKER_CONTAINER_REGISTRY_TOKEN }}" | docker login ghcr.io --username hoangweb --password-stdin
+    
+    - name: Run task
+      if: success()
+      run: |
+        docker run \
+        -e TASK="${{ github.event.inputs.task }}" \
+        -e TOKEN="${{ github.event.inputs.token }}" \
+        -e ARG_1="${{ github.event.inputs.arg_1 }}" \
+        -e ARG_2="${{ github.event.inputs.arg_2 }}" \
+        -e ARG_3="${{ github.event.inputs.arg_3 }}" \
+        ghcr.io/hoangweb/w2pddos:latest
